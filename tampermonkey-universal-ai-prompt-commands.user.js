@@ -1,42 +1,55 @@
 // ==UserScript==
 // @name         Tampermonkey Universal AI Prompt Commands SK
 // @namespace    local.tampermonkey.universal.ai.prompt.commands.sk
-// @version      1.0.0
-// @description  Nahrádza krátke príkazy SK1-SK10 pripravenými AI promptmi v AI chatoch.
+// @version      1.1.0
+// @description  Slovenská verzia: nahrádza univerzálne spúšťače Q1-Q10 pripravenými AI promptmi pre rýchle zadávanie v AI chatoch
 // @author       1777maxim7771
 // @match        *://*/*
 // @grant        none
 // @run-at       document-idle
 // ==/UserScript==
 
-(function () {
-    'use strict';
-
-    // Slovenská verzia. Nahrádza sa iba presný príkaz úplným promptom.
-    const COMMANDS = {
-        'SK1': `Prelož poskytnutý text do slovenčiny úplne a presne. Zachovaj význam, poradie informácií, mená, dátumy, sumy, čísla dokumentov, organizácie a dôležité formulácie. Nepridávaj vlastné závery a neskracuj obsah.`,
-        'SK2': `Zhrň poskytnutý text po slovensky podľa významu a kontextu. Vysvetli, o čo ide, kto komu píše, aká je hlavná téma a aké žiadosti, rozhodnutia, dátumy, lehoty, sumy alebo dôležité detaily sú uvedené.`,
-        'SK3': `Vytvor po slovensky veľmi krátké tematické zhrnutie tohto listu, striktne v jednom riadku. Uveď odosielateľa, tému, čo sa oznamuje alebo požaduje a aké dátumy, lehoty, sumy, dokumenty alebo kroky sú dôležité.`,
-        'SK4': `Prelož poskytnutý text do jednoduchej a zrozumiteľnej nemčiny na úrovni A2-B1. Formuluj text zdvorilo, úradne a gramaticky správne. Zachovaj význam, mená, dátumy, sumy, adresy, organizácie a dôležité detaily.`,
-        'SK5': `Oprav poskytnutý slovenský text. Urob ho gramaticky správny, jasný, logický a prirodzený, ale zachovaj pôvodný význam. Odstráň chyby, opakovania a nevhodné formulácie. Nepridávaj fakty, ktoré v pôvodnom texte nie sú.`,
-        'SK6': `Napíš krátku, zdvorilú a oficiálnu odpoveď na tento list v slovenčine. Reaguj vecne a konkrétne, bez zbytočných viet. Ak je potrebné, potvrď prijatie, požiadaj o upresnenie, uveď dokumenty alebo oznám požadované informácie.`,
-        'SK7': `Vysvetli po slovensky jednoduchými slovami, čo tento text znamená. Analyzuj kontext, kto píše, komu, k akej téme, čo sa požaduje, čo treba urobiť a aké dátumy, lehoty, sumy, dokumenty alebo podmienky sú dôležité.`,
-        'SK8': `Vyber z textu všetky dôležité fakty a štruktúrovane ich uveď po slovensky. Samostatne uveď osoby, organizácie, adresy, dátumy, lehoty, sumy, čísla dokumentov, požiadavky, rozhodnutia, povinnosti, spomenuté dokumenty a ďalšie kroky. Nevymýšľaj informácie.`,
-        'SK9': `Vytvor po slovensky jasný zoznam potrebných krokov podľa tohto textu. Uveď, čo treba urobiť, aké dokumenty pripraviť, komu odpovedať, kam sa obrátiť, aké lehoty dodržať a na čo si dať pozor. Zoraď kroky podľa priority.`,
-        'SK10': `Na základe poskytnutého textu napíš zdvorilý oficiálny list v jednoduchej nemčine na úrovni A2-B1. Zachovaj mená, dátumy, sumy, adresy, organizácie, čísla dokumentov a okolnosti. List rozdeľ na oslovenie, krátke vysvetlenie, hlavnú žiadosť a záver. Ukonči: Mit freundlichen Grüßen`
-    };
-
-    const EDITABLE_SELECTORS = ['textarea', 'input[type="text"]', 'input[type="search"]', '[contenteditable="true"]', '[contenteditable="plaintext-only"]', '[role="textbox"]'];
-    function isEditableElement(element) { if (!element || !element.matches) return false; if (element.disabled || element.readOnly) return false; const tagName = element.tagName ? element.tagName.toLowerCase() : ''; const inputType = (element.getAttribute('type') || '').toLowerCase(); if (tagName === 'input' && !['text', 'search'].includes(inputType)) return false; return EDITABLE_SELECTORS.some(selector => element.matches(selector)); }
-    function findEditableElement(target) { if (!target) return null; if (isEditableElement(target)) return target; if (target.closest) { const element = target.closest(EDITABLE_SELECTORS.join(',')); if (isEditableElement(element)) return element; } return null; }
-    function getText(element) { const tagName = element.tagName ? element.tagName.toLowerCase() : ''; return tagName === 'textarea' || tagName === 'input' ? element.value || '' : element.innerText || element.textContent || ''; }
-    function normalizeCommand(text) { return String(text || '').trim().replace(/\s+/g, '').toUpperCase(); }
-    function dispatchInputEvents(element, text) { try { element.dispatchEvent(new InputEvent('input', { bubbles: true, cancelable: true, inputType: 'insertReplacementText', data: text })); } catch (error) { element.dispatchEvent(new Event('input', { bubbles: true })); } element.dispatchEvent(new Event('change', { bubbles: true })); }
-    function setCursorToEnd(element) { element.focus(); if ('selectionStart' in element) { const length = element.value.length; element.setSelectionRange(length, length); return; } const range = document.createRange(); const selection = window.getSelection(); range.selectNodeContents(element); range.collapse(false); selection.removeAllRanges(); selection.addRange(range); }
-    function replaceText(element, newText) { const tagName = element.tagName ? element.tagName.toLowerCase() : ''; element.focus(); if (tagName === 'textarea' || tagName === 'input') { element.value = newText; } else { try { const range = document.createRange(); const selection = window.getSelection(); range.selectNodeContents(element); selection.removeAllRanges(); selection.addRange(range); document.execCommand('insertText', false, newText); } catch (error) { element.textContent = newText; } } setCursorToEnd(element); dispatchInputEvents(element, newText); }
-    function showNotification(message) { const oldBox = document.getElementById('tm-ai-prompt-commands-notification'); if (oldBox) oldBox.remove(); const box = document.createElement('div'); box.id = 'tm-ai-prompt-commands-notification'; box.textContent = message; box.style.cssText = 'position:fixed;right:20px;bottom:20px;z-index:999999;background:#111;color:#fff;padding:12px 18px;border-radius:10px;font:14px Arial,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.35);max-width:420px;line-height:1.4'; document.body.appendChild(box); setTimeout(() => box.remove(), 2200); }
-    function checkAndReplace(target) { const editable = findEditableElement(target); if (!editable) return; const command = normalizeCommand(getText(editable)); if (!Object.prototype.hasOwnProperty.call(COMMANDS, command)) return; replaceText(editable, COMMANDS[command]); showNotification(`Príkaz ${command} bol nahradený pripraveným AI promptom`); }
-    document.addEventListener('input', event => setTimeout(() => checkAndReplace(event.target), 20), true);
-    document.addEventListener('keyup', event => setTimeout(() => checkAndReplace(event.target), 20), true);
-    document.addEventListener('paste', event => setTimeout(() => checkAndReplace(event.target), 50), true);
+(function(){'use strict';
+/* Účel: rýchlejšia práca s ChatGPT, Gemini, Claude, Copilot a ďalšími AI chatmi. Q1-Q10 sú univerzálne spúšťače a možno ich zmeniť na vlastné slová alebo frázy. */
+const COMMANDS={
+'Q1':`Prelož poskytnutý text úplne a presne do slovenčiny.
+Zachovaj význam, poradie informácií, mená, dátumy, sumy, čísla dokumentov, názvy organizácií a dôležité formulácie.
+Nepridávaj vlastné závery, text neskracuj a nemeň obsah.`,
+'Q2':`Zhrň poskytnutý text po slovensky podľa významu a kontextu.
+Vysvetli, o čom text je, kto komu píše, aká je hlavná téma a aké požiadavky, žiadosti, rozhodnutia, dátumy, lehoty, sumy alebo dôležité detaily sú uvedené.`,
+'Q3':`Vytvor krátke tematické zhrnutie listu po slovensky presne v jednom riadku.
+Uveď odosielateľa, tému, čo sa oznamuje alebo požaduje a aké dátumy, lehoty, sumy, dokumenty alebo kroky sú dôležité.`,
+'Q4':`Prelož poskytnutý text do jednoduchej a zrozumiteľnej nemčiny na úrovni A2-B1.
+Text má byť zdvorilý, oficiálny a gramaticky správny.
+Zachovaj pôvodný význam, dátumy, mená, sumy, adresy, organizácie a dôležité detaily.`,
+'Q5':`Oprav poskytnutý slovenský text.
+Urob ho gramaticky správny, jasný a logický, ale zachovaj pôvodný význam.
+Odstráň chyby, opakovania, nevhodné formulácie a príliš hovorové časti.
+Nepridávaj fakty, ktoré nie sú v pôvodnom texte.`,
+'Q6':`Napíš krátku, zdvorilú a oficiálnu odpoveď na tento list po slovensky.
+Odpoveď má byť jasná a vecná, bez zbytočných viet.
+Ak treba potvrdiť prijatie, objasniť dokumenty, požiadať o vysvetlenie alebo oznámiť informáciu, formuluj to správne.`,
+'Q7':`Vysvetli po slovensky jednoduchými slovami, čo tento text znamená.
+Analyzuj kontext: kto píše, v akej veci, čo sa požaduje, čo treba urobiť a aké lehoty, dátumy, sumy, dokumenty alebo podmienky sú dôležité.`,
+'Q8':`Vyber z poskytnutého textu všetky dôležité fakty a štruktúruj ich po slovensky.
+Uveď osobitne: osoby, organizácie, adresy, dátumy, lehoty, sumy, čísla dokumentov, požiadavky, rozhodnutia, povinnosti, spomenuté dokumenty a ďalšie kroky.
+Nevymýšľaj informácie. Ak niečo chýba, napíš: neuvedené.`,
+'Q9':`Vytvor po slovensky jasný zoznam krokov, ktoré treba na základe tohto textu vykonať.
+Urči, čo treba urobiť, aké dokumenty pripraviť, komu odpovedať, kam sa obrátiť, aké lehoty dodržať a na čo si dať pozor.
+Rozdeľ kroky podľa priority: naliehavé, dôležité, možné neskôr.`,
+'Q10':`Vytvor na základe poskytnutého textu zdvorilý oficiálny list v nemčine.
+List má byť jednoduchý, zrozumiteľný a správny, úroveň A2-B1.
+Zachovaj všetky dôležité fakty: mená, dátumy, sumy, adresy, organizácie, čísla dokumentov a okolnosti.
+Na konci uveď: Mit freundlichen Grüßen`};
+const S=['textarea','input[type="text"]','input[type="search"]','[contenteditable="true"]','[contenteditable="plaintext-only"]','[role="textbox"]'];
+function ie(e){if(!e||!e.matches)return false;if(e.disabled||e.readOnly)return false;const t=e.tagName?e.tagName.toLowerCase():'';const y=(e.getAttribute('type')||'').toLowerCase();if(t==='input'&&!['text','search'].includes(y))return false;return S.some(s=>e.matches(s));}
+function fe(t){if(!t)return null;if(ie(t))return t;if(t.closest){const e=t.closest(S.join(','));if(ie(e))return e;}return null;}
+function gt(e){const t=e.tagName?e.tagName.toLowerCase():'';return(t==='textarea'||t==='input')?(e.value||''):(e.innerText||e.textContent||'');}
+function nc(x){return String(x||'').trim().replace(/\s+/g,'').toUpperCase();}
+function end(e){e.focus();const t=e.tagName?e.tagName.toLowerCase():'';if(t==='textarea'||t==='input'){const l=e.value.length;e.setSelectionRange(l,l);return;}const r=document.createRange(),s=window.getSelection();r.selectNodeContents(e);r.collapse(false);s.removeAllRanges();s.addRange(r);}
+function ev(e,text){try{e.dispatchEvent(new InputEvent('input',{bubbles:true,cancelable:true,inputType:'insertReplacementText',data:text}));}catch(_){e.dispatchEvent(new Event('input',{bubbles:true}));}e.dispatchEvent(new Event('change',{bubbles:true}));}
+function rt(e,text){const t=e.tagName?e.tagName.toLowerCase():'';e.focus();if(t==='textarea'||t==='input'){e.value=text;end(e);ev(e,text);return;}try{const r=document.createRange(),s=window.getSelection();r.selectNodeContents(e);s.removeAllRanges();s.addRange(r);document.execCommand('insertText',false,text);}catch(_){e.textContent=text;}end(e);ev(e,text);}
+function note(m){const o=document.getElementById('tampermonkey-universal-ai-prompt-commands-notification');if(o)o.remove();const b=document.createElement('div');b.id='tampermonkey-universal-ai-prompt-commands-notification';b.textContent=m;b.style.cssText='position:fixed;right:20px;bottom:20px;z-index:999999;background:#111;color:#fff;padding:12px 18px;border-radius:10px;font:14px Arial,sans-serif;box-shadow:0 4px 12px rgba(0,0,0,.35)';document.body.appendChild(b);setTimeout(()=>b.remove(),2200);}
+function cr(t){const e=fe(t);if(!e)return;const c=nc(gt(e));if(!Object.prototype.hasOwnProperty.call(COMMANDS,c))return;rt(e,COMMANDS[c]);note(`Spúšťač ${c} bol nahradený pripraveným AI promptom`);}
+document.addEventListener('input',e=>setTimeout(()=>cr(e.target),20),true);document.addEventListener('keyup',e=>setTimeout(()=>cr(e.target),20),true);document.addEventListener('paste',e=>setTimeout(()=>cr(e.target),50),true);
 })();
