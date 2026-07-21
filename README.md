@@ -1,129 +1,114 @@
 # Tampermonkey Universal AI Prompt Commands SK
 
-**Tampermonkey Universal AI Prompt Commands SK** je userscript pre rozšírenie **Tampermonkey**. Pomáha rýchlejšie pracovať s AI chatmi ako ChatGPT, Gemini, Claude, Copilot a ďalšími webmi s textovým poľom.
+Slovenská verzia Tampermonkey skriptu na rýchlejšiu prácu s chatmi umelej inteligencie.
 
-Skript nahrádza krátke príkazy ako `SK1`, `SK3` alebo `SK10` dlhými pripravenými AI promptmi.
-
----
+Skript nahrádza univerzálne spúšťače `Q1–Q10` pripravenými AI promptmi. Tieto spúšťače nie sú viazané na jazyk: používateľ môže `Q1`, `Q2` a ďalšie nahradiť vlastnými slovami, príkazmi alebo frázami.
 
 ## Na čo slúži
 
-Slúži na rýchle vkladanie promptov pre preklad, zhrnutie, analýzu listov, extrakciu faktov, oficiálne odpovede a prípravu textov.
-
----
+Slúži na rýchle vkladanie promptov do ChatGPT, Gemini, Claude, Copilot a ďalších AI chatov. Namiesto opakovaného písania dlhého zadania stačí napísať `Q1` a skript vloží celý prompt.
 
 ## Ako funguje
 
-Ak pole obsahuje presný známy príkaz, napríklad:
+Skript sleduje aktívne textové pole. Ak celý obsah poľa presne zodpovedá jednému zo spúšťačov `Q1–Q10`, nahradí sa pripraveným promptom.
 
 ```text
-SK1
+Q1
 ```
 
-nahradí sa úplným promptom. Bežný text sa nemení.
+sa nahradí promptom na preklad do slovenčiny.
 
----
+```text
+Q8
+```
 
-## Príklady
+sa nahradí promptom na vybratie dôležitých faktov.
 
-- `SK1` — presný preklad do slovenčiny.
-- `SK3` — zhrnutie listu v jednom riadku.
-- `SK8` — extrakcia dátumov, súm, osôb, organizácií a dokumentov.
-- `SK10` — oficiálny list v jednoduchej nemčine A2-B1.
+Bežný text sa nemení. Napríklad `Q1 ďalší text` nebude nahradený.
 
----
+## Vlastné spúšťače
 
-## Kde použiť
+Spúšťače možno zmeniť v kóde v objekte `COMMANDS`.
 
-ChatGPT, Google Gemini, Claude, Microsoft Copilot a ďalšie weby s textovým poľom.
+```javascript
+'Q1': `...`
+```
+
+môže byť napríklad:
+
+```javascript
+'PRELOZ': `...`
+```
+
+`Q1–Q10` sú iba predvolené univerzálne spúšťače.
+
+## Kde používať
+
+- ChatGPT
+- Google Gemini
+- Claude
+- Microsoft Copilot
+- iné weby s textovým poľom
+
+Skript obsahuje:
 
 ```javascript
 // @match        *://*/*
 ```
 
-Skript funguje na rôznych weboch, ale nahrádza iba presné príkazy.
+## Požiadavka pred inštaláciou
 
----
+V prehliadači musí byť najskôr nainštalované rozšírenie **Tampermonkey**. Skript sa inštaluje do Tampermonkey, nie do GitHubu ani do konkrétneho webu. GitHub slúži iba na uloženie súboru `.user.js`.
 
-## Pred inštaláciou
-
-Najprv nainštalujte rozšírenie **Tampermonkey**. Umožňuje inštalovať a spúšťať súbory `.user.js`.
-
----
-
-## Rýchla inštalácia cez Raw
+## Rýchla inštalácia
 
 1. Nainštalujte Tampermonkey.
-2. Otvorte tento Raw odkaz:
+2. Otvorte Raw odkaz:
 
 ```text
 https://raw.githubusercontent.com/1777maxim7771/sk_tampermonkey-universal-ai-prompt-commands/main/tampermonkey-universal-ai-prompt-commands.user.js
 ```
 
 3. Potvrďte inštaláciu v Tampermonkey.
-4. Otestujte `SK1` v AI chate.
+4. Otvorte AI chat a napíšte `Q1`.
 
----
+## Inštalácia cez GitHub
 
-## Inštalácia z GitHubu
-
-Otvorte `tampermonkey-universal-ai-prompt-commands.user.js`, kliknite na **Raw** a potvrďte v Tampermonkey.
-
----
+Otvorte súbor `tampermonkey-universal-ai-prompt-commands.user.js`, kliknite na **Raw** a potvrďte inštaláciu v Tampermonkey.
 
 ## Import cez URL
 
-Tampermonkey → Dashboard → Utilities → Import from URL → vložte Raw odkaz.
-
----
+V Tampermonkey otvorte **Dashboard → Utilities → Import from URL**, vložte Raw odkaz a potvrďte.
 
 ## Ručná inštalácia
 
-Tampermonkey → Create a new script → zmažte šablónu → vložte obsah `.user.js` → uložte pomocou **Ctrl + S**.
+Vytvorte nový skript v Tampermonkey, vložte kód zo súboru `.user.js` a uložte.
 
----
+## Prečo Tampermonkey skript rozpozná
 
-## Prečo Tampermonkey rozpozná skript
+Tampermonkey rozpozná hlavičku `// ==UserScript==` a príponu `.user.js`.
 
-Vďaka hlavičke `// ==UserScript==` a prípone `.user.js`. Skript sa inštaluje do **Tampermonkey**, nie do GitHubu ani na konkrétny web.
+## Predvolené príkazy
 
----
-
-## Príkazy
-
-- `SK1` — preklad do slovenčiny.
-- `SK2` — zhrnutie po slovensky.
-- `SK3` — zhrnutie listu v jednom riadku.
-- `SK4` — preklad do nemčiny A2-B1.
-- `SK5` — oprava slovenského textu.
-- `SK6` — krátka oficiálna odpoveď.
-- `SK7` — jednoduché vysvetlenie.
-- `SK8` — extrakcia dôležitých faktov.
-- `SK9` — zoznam potrebných krokov.
-- `SK10` — oficiálny list v nemčine.
-
----
+- `Q1` — preklad do slovenčiny.
+- `Q2` — zhrnutie textu.
+- `Q3` — zhrnutie listu v jednom riadku.
+- `Q4` — preklad do jednoduchej nemčiny A2-B1.
+- `Q5` — oprava slovenského textu.
+- `Q6` — krátka oficiálna odpoveď.
+- `Q7` — jednoduché vysvetlenie textu.
+- `Q8` — vybratie dôležitých faktov.
+- `Q9` — zoznam potrebných krokov.
+- `Q10` — oficiálny list v nemčine.
 
 ## Kontrola
 
-Napíšte `SK1`. Ak sa nahradí úplným promptom, skript funguje.
-
----
+Napíšte `Q1` v AI chate. Ak skript funguje, `Q1` sa nahradí celým promptom.
 
 ## Možné problémy
 
-Skontrolujte, či Tampermonkey a skript sú zapnuté, stránka je obnovená a príkaz je napísaný samostatne.
-
----
-
-## Súbor skriptu
-
-```text
-tampermonkey-universal-ai-prompt-commands.user.js
-```
-
----
+Skontrolujte, či je skript zapnutý, stránka bola obnovená, `Q1` je zadané bez ďalšieho textu, Tampermonkey má na webe povolenie a kurzor je v editovateľnom poli.
 
 ## Cieľ projektu
 
-Zrýchliť opakovanú prácu s AI chatmi pomocou krátkych príkazov, ktoré vkladajú úplné prompty.
+Zrýchliť opakovanú prácu s AI chatmi: preklad, zhrnutie, analýzu listov, oficiálne odpovede a spracovanie dokumentov.
